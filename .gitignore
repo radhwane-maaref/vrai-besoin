@@ -1,0 +1,11 @@
+# Django / Python
+__pycache__/
+*.py[cod]
+db.sqlite3
+venv/
+.env
+
+# Vue.js / Node
+node_modules/
+dist/
+.DS_Store
