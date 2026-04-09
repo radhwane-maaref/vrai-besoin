@@ -37,10 +37,10 @@ node_modules/
 .pnp/
 .pnp.js
 
-# Production builds
-/dist/
-/dist-ssr/
-/build/
+# Production builds (Removed leading slashes to catch frontend/dist/)
+dist/
+dist-ssr/
+build/
 
 # Package manager logs
 npm-debug.log*
