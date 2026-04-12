@@ -1,5 +1,6 @@
 import uuid
 
+from django.contrib.auth.base_user import BaseUserManager
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -9,6 +10,31 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 # les classes de mon application
 
+class CustomUserManager(BaseUserManager):
+    """
+    Manager personnalisé pour utiliser l'email comme identifiant principal
+    à la place du username.
+    """
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError(_("L'adresse e-mail est obligatoire."))
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Superuser must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Superuser must have is_superuser=True.'))
+
+        return self.create_user(email, password, **extra_fields)
 # L'utilisateur personalisé
 class CustomUser(AbstractUser):
     monthly_budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -16,7 +42,11 @@ class CustomUser(AbstractUser):
     financial_goal = models.TextField(null=True, blank=True)
     last_ip_address = models.GenericIPAddressField(null=True, blank=True)
     location_data = models.JSONField(default=dict, blank=True)
-
+    username = None
+    email = models.EmailField(_('email address'), unique=True)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+    objects = CustomUserManager()
     class AuthProviders(models.TextChoices):
         EMAIL = 'EMAIL', _('Email')
         GOOGLE = 'GOOGLE', _('Google')

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from pathlib import Path
 from dotenv import load_dotenv
@@ -10,8 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1yn*4r&kkakp&f68(p(2qhk%&6dl(s-9)t6)$$%gi17dvo^v=4'
-
+SECRET_KEY = os.getenv('SECRET_KEY', 'your-fallback-dev-key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -115,3 +115,31 @@ STATIC_URL = 'static/'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
+
+AUTH_USER_MODEL = 'api.CustomUser'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+GOOGLE_OAUTH_CLIENT_ID = os.getenv('GOOGLE_OAUTH_CLIENT_ID')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-relay.brevo.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('BREVO_SMTP_LOGIN')
+EMAIL_HOST_PASSWORD = os.getenv('BREVO_SMTP_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@vrai-besoin.me')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
