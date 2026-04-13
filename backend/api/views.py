@@ -114,6 +114,48 @@ class GoogleLoginView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class PasswordResetRequestAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ResetPasswordEmailRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            try:
+                user = CustomUser.objects.get(email=email)
+
+                # Bloquer silencieusement si l'utilisateur s'est inscrit via Google
+                if user.auth_provider == 'GOOGLE':
+                    return Response(
+                        {'error': _("Ce compte est lié à Google. Veuillez utiliser la connexion Google.")},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                # 1. Générer l'identifiant encodé et le token de sécurité
+                uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+                token = PasswordResetTokenGenerator().make_token(user)
+
+                # 2. Construire le lien qui pointera vers le front-end VUE.JS
+                # (Ex: http://localhost:5173/reset-password/MTE/ajk123-token...)
+                frontend_url = settings.FRONTEND_URL
+                reset_url = f"{frontend_url}/reset-password/{uidb64}/{token}/"
+
+                # 3. Envoyer l'e-mail via le service
+                send_password_reset_email(email, reset_url)
+
+            except CustomUser.DoesNotExist:
+                # RÈGLE DE SÉCURITÉ : Ne jamais confirmer à un attaquant si un e-mail existe en base
+                pass
+
+            # On renvoie un message de succès générique dans tous les cas
+            return Response(
+                {'message': _(
+                    "Si votre adresse e-mail existe dans notre base de données, vous recevrez un lien de réinitialisation sous peu.")},
+                status=status.HTTP_200_OK
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class PasswordResetConfirmAPIView(APIView):
     permission_classes = [AllowAny]
 

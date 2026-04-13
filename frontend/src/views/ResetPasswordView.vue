@@ -82,6 +82,8 @@ const handleResetConfirm = async () => {
   try {
     const response = await api.post(`/auth/password-reset-confirm/${uid}/${token}/`, formData);
     successMessage.value = response.data.message;
+    formData.password = '';
+    formData.password_confirm = '';
 
     // Automatically redirect to login after a brief pause so they can read the success message
     setTimeout(() => {
