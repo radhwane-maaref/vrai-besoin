@@ -1,11 +1,11 @@
 <script setup>
-import { onMounted } from 'vue';
-import { RouterView } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
+import {onMounted} from 'vue';
+import {RouterView} from 'vue-router';
+import {useAuthStore} from '@/stores/auth';
+import BottomNavBar from '@/components/BottomNavBar.vue';
 
 const authStore = useAuthStore();
 
-// Hydrate user profile on application startup if a token exists
 onMounted(async () => {
   if (authStore.isAuthenticated) {
     try {
@@ -18,11 +18,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <RouterView />
+
+  <div
+      class="min-h-screen flex flex-col font-sans"
+      :class="authStore.isAuthenticated ? 'pb-[calc(4rem+env(safe-area-inset-bottom))]' : ''"
+  >
+    <router-view class="flex-grow"/>
+    <BottomNavBar v-if="authStore.isAuthenticated"/>
+  </div>
 </template>
 
 <style>
-/* Global resets handled by Tailwind in main.css */
 body {
   overscroll-behavior-y: none;
   background-color: #FAFAFA;
