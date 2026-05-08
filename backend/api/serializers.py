@@ -1,30 +1,72 @@
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
-from .models import CustomUser, PurchaseIntention, ReflectionQuestion, AppFeedback, ErrorLog
+from .models import CustomUser, PurchaseIntention, ReflectionQuestion, AppFeedback, ErrorLog, SocioProChoices
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from django.utils.translation import gettext_lazy as _
+import magic
+import json
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    socio_professional_categories = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        allow_empty=True
+    )
     class Meta:
         model = CustomUser
-        fields = [
-            'id', 'username', 'email', 'monthly_budget', 'profession',
-            'financial_goal', 'location_data', 'auth_provider', 'is_staff', 'cooldown_preference', 'evaluation_rigor','preferred_currency'
-        ]
+        # 1. AJOUT CRUCIAL : 'socio_professional_categories' DOIT être dans cette liste
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'full_name',
+                  'birth_date', 'monthly_budget', 'profession', 'financial_goal',
+                  'location_data', 'auth_provider', 'is_staff', 'cooldown_preference',
+                  'evaluation_rigor', 'preferred_currency', 'wants_cooldown_reminders',
+                  'socio_professional_categories'
+                  ]
         extra_kwargs = {
             'email': {'read_only': True},
             'username': {'read_only': True},
-            'is_staff': {'read_only': True}
+            'is_staff': {'read_only': True},
+            'profession': {'read_only': True}
         }
 
-    def validate_monthly_budget(self, value):
-        if value is not None and value < 0:
-            raise serializers.ValidationError(_("Le budget mensuel ne peut pas être négatif."))
+    def validate_socio_professional_categories(self, value):
+        """
+        Validateur ultra-robuste : Gère les cas où Vue.js envoie la donnée
+        sous forme de liste native ou de chaîne de caractères JSON stringifiée.
+        """
+        # Si Django reçoit une chaîne de caractères au lieu d'une liste
+        if isinstance(value, str):
+            try:
+                # Tente de parser '["Étudiant"]' (JSON)
+                value = json.loads(value)
+            except Exception:
+                # Fallback de sécurité si le format est "Étudiant,Employé"
+                value = [v.strip() for v in value.split(',')]
+
+        # Vérification finale du type
+        if not isinstance(value, list):
+            raise serializers.ValidationError(_("Le format doit être une liste de chaînes de caractères."))
+
+        # Filtrer les potentiels éléments vides
+        value = [v for v in value if v]
+
+        # Validation métier : min 1, max 3
+        if len(value) < 1 or len(value) > 3:
+            raise serializers.ValidationError(_("Vous devez sélectionner entre 1 et 3 catégories."))
+
+        # Validation métier : Exclusivité de "Préfère ne pas répondre"
+        if "Préfère ne pas répondre" in value and len(value) > 1:
+            raise serializers.ValidationError(
+                _("'Préfère ne pas répondre' ne peut pas être combiné avec d'autres choix."))
+
         return value
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -84,16 +126,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
         # Création de l'utilisateur avec les données validées et sécurisées
         return super().create(validated_data)
+
+
 def validate_not_empty_string(value, error_message):
     """Utility to ensure string fields are not just whitespace."""
     if not value.strip():
         raise serializers.ValidationError(error_message)
     return value
 
+
 class ReflectionQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReflectionQuestion
-        fields = ['id', 'purchase_intention', 'question_text','ai_options', 'user_answer']
+        fields = ['id', 'purchase_intention', 'question_text', 'ai_options', 'user_answer']
 
 
 class PurchaseIntentionSerializer(serializers.ModelSerializer):
@@ -106,7 +151,7 @@ class PurchaseIntentionSerializer(serializers.ModelSerializer):
             'id', 'user', 'product_name', 'product_price', 'product_category',
             'product_image', 'ai_verdict', 'ai_reasoning', 'user_final_decision',
             'created_at', 'updated_at', 'questions', 'usage_frequency', 'has_similar_item', 'urgency_level',
-            'cooldown_expires_at','is_incoherent_bypassed'
+            'cooldown_expires_at', 'is_incoherent_bypassed'
         ]
         read_only_fields = [
             'id', 'user', 'ai_verdict', 'ai_reasoning',
@@ -128,11 +173,16 @@ class PurchaseIntentionSerializer(serializers.ModelSerializer):
 
 
 class ErrorLogSerializer(serializers.ModelSerializer):
+    assigned_to_email = serializers.SerializerMethodField()
+
     class Meta:
         model = ErrorLog
         fields = '__all__'
-        # Restrict API modification of critical log data
-        read_only_fields = ['id', 'created_at', 'error_message', 'endpoint_url', 'level']
+        read_only_fields = ['id', 'created_at', 'error_message', 'endpoint_url', 'level', 'http_method', 'stack_trace',
+                            'user', 'resolved_at']
+
+    def get_assigned_to_email(self, obj):
+        return obj.assigned_to.email if obj.assigned_to else None
 
 
 class ResetPasswordEmailRequestSerializer(serializers.Serializer):
@@ -196,6 +246,22 @@ class ProductImageExtractionSerializer(serializers.Serializer):
         max_size = 5 * 1024 * 1024
         if value.size > max_size:
             raise serializers.ValidationError(_("L'image ne doit pas dépasser 5 MB."))
+        file_header = value.read(2048)
+        value.seek(0)
+        try:
+            mime = magic.Magic(mime=True)
+            actual_mime_type = mime.from_buffer(file_header)
+        except Exception:
+            raise serializers.ValidationError(_("Impossible de vérifier l'intégrité du fichier."))
+        allowed_mime_types = [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+
+        ]
+        if actual_mime_type not in allowed_mime_types:
+            raise serializers.ValidationError(
+                _("Fichier non autorisé. Seuls les formats JPEG, PNG et WEBP sont acceptés."))
         return value
 
 
@@ -234,3 +300,17 @@ class AdminFeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = AppFeedback
         fields = ['id', 'user_email', 'subject', 'rating', 'comment', 'created_at']
+
+
+class AdminUserListSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id', 'email', 'first_name', 'last_name', 'full_name',
+            'auth_provider', 'is_active', 'date_joined'
+        ]
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()

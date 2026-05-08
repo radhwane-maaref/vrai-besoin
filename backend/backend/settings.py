@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from pathlib import Path
 from dotenv import load_dotenv
+
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -112,7 +113,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-
 # Ici on autorise le projet Vue JS à communiquer avec Django
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -127,6 +127,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_THROTTLE_RATES': {
+        'password_reset': '2/hour', }
 }
 
 SIMPLE_JWT = {

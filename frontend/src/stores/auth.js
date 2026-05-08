@@ -75,6 +75,7 @@ export const useAuthStore = defineStore("auth", () => {
       user.value = response.data;
     } catch (err) {
       console.error("Failed to fetch user profile:", err);
+      throw err; // ESSENTIEL : Permet au routeur (router/index.js) de capter l'erreur et de bloquer l'accès
     }
   };
 

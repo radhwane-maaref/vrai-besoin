@@ -7,8 +7,12 @@ export const useCurrencyStore = defineStore('currency', () => {
     const authStore = useAuthStore();
 
     // Initialisation locale
-    const savedCurrency = localStorage.getItem('user_favorite_currency');
-    const defaultCurrency = {code: 'TND', name: 'Dinar tunisien', flag: '🇹🇳'};
+    const savedCurrency = localStorage.getItem("user_favorite_currency");
+    const defaultCurrency = {
+      code: "TND",
+      name: "Dinar tunisien",
+      countryCode: "tn",
+    };
     const currentCurrency = ref(savedCurrency ? JSON.parse(savedCurrency) : defaultCurrency);
 
     // Écoute les données du backend au chargement de l'app

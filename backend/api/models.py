@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -42,11 +43,48 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
+class BudgetChoices(models.TextChoices):
+    PREFER_NOT_TO_SAY = 'Je préfère ne pas répondre', _('Je préfère ne pas répondre')
+    UNDER_500 = 'Moins de 500', _('Moins de 500')
+    BETWEEN_500_1000 = '500 - 1 000', _('500 - 1 000')
+    BETWEEN_1000_2000 = '1 000 - 2 000', _('1 000 - 2 000')
+    BETWEEN_2000_3500 = '2 000 - 3 500', _('2 000 - 3 500')
+    BETWEEN_3500_5000 = '3 500 - 5 000', _('3 500 - 5 000')
+    BETWEEN_5000_8000 = '5 000 - 8 000', _('5 000 - 8 000')
+    BETWEEN_8000_15000 = '8 000 - 15 000', _('8 000 - 15 000')
+    OVER_15000 = '15 000+', _('15 000+')
+class SocioProChoices(models.TextChoices):
+    STUDENT = 'Étudiant', _('Étudiant')
+    EMPLOYEE = 'Employé', _('Employé')
+    CIVIL_SERVANT = 'Fonctionnaire', _('Fonctionnaire')
+    FREELANCE = 'Indépendant / Freelance', _('Indépendant / Freelance')
+    ENTREPRENEUR = 'Entrepreneur / Chef d\'entreprise', _('Entrepreneur / Chef d\'entreprise')
+    MERCHANT = 'Commerçant / Artisan', _('Commerçant / Artisan')
+    LIBERAL = 'Profession libérale', _('Profession libérale')
+    WORKER = 'Ouvrier / Technicien', _('Ouvrier / Technicien')
+    UNEMPLOYED = 'Sans emploi', _('Sans emploi')
+    RETIRED = 'Retraité', _('Retraité')
+    HOMEMAKER = 'Au foyer', _('Au foyer')
+    OTHER = 'Autre', _('Autre')
+    PREFER_NOT_TO_SAY = 'Préfère ne pas répondre', _('Préfère ne pas répondre')
 
+def default_socio_pro():
+    return [SocioProChoices.PREFER_NOT_TO_SAY.value]
 # L'utilisateur personalisé
 class CustomUser(AbstractUser):
-    monthly_budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    monthly_budget = models.CharField(
+        max_length=50,
+        choices=BudgetChoices.choices,
+        null=True,
+        blank=True
+    )
     profession = models.CharField(max_length=150, null=True, blank=True)
+    socio_professional_categories = models.JSONField(
+        default=default_socio_pro,
+        blank=True,
+        help_text=_("Catégories socio-professionnelles (max 3)")
+    )
+    birth_date = models.DateField(null=True, blank=True)
     financial_goal = models.TextField(null=True, blank=True)
     last_ip_address = models.GenericIPAddressField(null=True, blank=True)
     location_data = models.JSONField(default=dict, blank=True)
@@ -83,7 +121,15 @@ class CustomUser(AbstractUser):
         help_text=_("Méthode d'inscription utilisée par l'utilisateur")
     )
     google_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
-
+    wants_cooldown_reminders = models.BooleanField(
+        default=True,
+        help_text=_("Recevoir une alerte avant la fin de la période de réflexion")
+    )
+    history_cleared_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=_("Date de la dernière réinitialisation de l'historique (Soft Delete)")
+    )
     def delete(self, *args, **kwargs):
         # Désactive le compte au lieu de le supprimer ( Soft delete )
         self.is_active = False
@@ -91,6 +137,59 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email or self.username
+
+
+class ProductCategoryChoices(models.TextChoices):
+    # Électronique & Tech
+    SMARTPHONES = 'Smartphones', _('Smartphones')
+    COMPUTERS = 'Ordinateurs & Tablettes', _('Ordinateurs & Tablettes')
+    AUDIO = 'Audio & Écouteurs', _('Audio & Écouteurs')
+    TECH_ACCESSORIES = 'Accessoires Tech (Coques, Câbles...)', _('Accessoires Tech (Coques, Câbles...)')
+
+    # Gaming
+    GAMING_CONSOLES = 'Consoles de jeux', _('Consoles de jeux')
+    VIDEO_GAMES = 'Jeux vidéo', _('Jeux vidéo')
+
+    # Mode & Accessoires
+    CLOTHING = 'Vêtements', _('Vêtements')
+    SHOES = 'Chaussures & Sneakers', _('Chaussures & Sneakers')
+    BAGS = 'Sacs & Maroquinerie', _('Sacs & Maroquinerie')
+    JEWELRY = 'Bijoux & Montres', _('Bijoux & Montres')
+    FASHION_ACCESSORIES = 'Accessoires de Mode', _('Accessoires de Mode')
+
+    # Maison & Décoration
+    HOME_DECOR = 'Décoration d\'intérieur', _('Décoration d\'intérieur')
+    FURNITURE = 'Meubles', _('Meubles')
+    CANDLES_FRAGRANCES = 'Bougies & Parfums d\'ambiance', _('Bougies & Parfums d\'ambiance')
+    KITCHENWARE = 'Ustensiles de cuisine & Vaisselle', _('Ustensiles de cuisine & Vaisselle')
+
+    # Électroménager
+    SMALL_APPLIANCES = 'Petit Électroménager', _('Petit Électroménager')
+    LARGE_APPLIANCES = 'Gros Électroménager', _('Gros Électroménager')
+
+    # Beauté & Santé
+    MAKEUP = 'Maquillage & Cosmétiques', _('Maquillage & Cosmétiques')
+    SKINCARE = 'Soins de la peau', _('Soins de la peau')
+    PERFUME = 'Parfums', _('Parfums')
+    HAIRCARE = 'Soins des cheveux', _('Soins des cheveux')
+
+    # Sport, Loisirs & Culture
+    SPORTS_GEAR = 'Équipement de sport', _('Équipement de sport')
+    COLLECTIBLES = 'Objets de collection & Figurines', _('Objets de collection & Figurines')
+    BOOKS = 'Livres, Mangas & BD', _('Livres, Mangas & BD')
+    ART_CRAFTS = 'Art & Loisirs créatifs', _('Art & Loisirs créatifs')
+
+    # Alimentation & Sorties (Frequent Impulse Triggers)
+    RESTAURANTS_DELIVERY = 'Restaurants & Livraison', _('Restaurants & Livraison')
+    COFFEE_SHOPS = 'Cafés & Salons de thé', _('Cafés & Salons de thé')
+    SNACKS_ALCOHOL = 'Snacks & Alcool', _('Snacks & Alcool')
+
+    # Achats Numériques (Digital Impulse Buys)
+    DIGITAL_SUBSCRIPTIONS = 'Abonnements & Logiciels', _('Abonnements & Logiciels')
+    IN_APP_PURCHASES = 'Achats in-app & Microtransactions', _('Achats in-app & Microtransactions')
+
+    # Divers
+    OTHER = 'Autre', _('Autre')
 
 
 class PurchaseIntention(models.Model):
@@ -110,7 +209,11 @@ class PurchaseIntention(models.Model):
                              blank=True, related_name='purchase_intentions')
     product_name = models.CharField(max_length=100)
     product_price = models.DecimalField(max_digits=10, decimal_places=2)
-    product_category = models.CharField(max_length=100)
+    product_category = models.CharField(
+        max_length=100,
+        choices=ProductCategoryChoices.choices,
+        default=ProductCategoryChoices.OTHER
+    )
     usage_frequency = models.CharField(max_length=50, null=True, blank=True)
     has_similar_item = models.BooleanField(default=False)
     urgency_level = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], default=3)
@@ -138,10 +241,19 @@ class PurchaseIntention(models.Model):
         blank=True,
         help_text=_("La décision finale prise par l'utilisateur")
     )
+    wait_chosen_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=_("Date à laquelle l'utilisateur a cliqué sur 'Attendre' pour la première fois")
+    )
     cooldown_expires_at = models.DateTimeField(
         null=True,
         blank=True,
         help_text=_("Date d'expiration de la période de réflexion")
+    )
+    reminder_sent = models.BooleanField(
+        default=False,
+        help_text=_("Indique si l'e-mail de rappel de 2h a déjà été envoyé")
     )
 
     def save(self, *args, **kwargs):
@@ -150,7 +262,7 @@ class PurchaseIntention(models.Model):
             # Check if this is a new image or just updating the model
             # We don't want to re-compress an already compressed image
             is_new_image = False
-            if not self.pk:
+            if self._state.adding:
                 is_new_image = True
             else:
                 orig = PurchaseIntention.objects.get(pk=self.pk)
@@ -195,13 +307,9 @@ class PurchaseIntention(models.Model):
 class ReflectionQuestion(models.Model):
     purchase_intention = models.ForeignKey(PurchaseIntention, on_delete=models.CASCADE, related_name="questions")
     question_text = models.CharField(max_length=300)
-    # La question generé par l'IA
-    question_text = models.CharField(max_length=300)
-
     ai_options = models.JSONField(default=list, blank=True, null=True)
     # La réponse de l'utilisateur
     user_answer = models.CharField(max_length=500, null=True, blank=True)
-
     def save(self, *args, **kwargs):
         # Vérification de la limite de 3 questions par intention d'achat
         # On ne fait le test que lors de la création initiale (quand il n'y a pas encore de primary key 'pk')
@@ -239,9 +347,33 @@ class ErrorLog(models.Model):
         ERROR = 'ERROR', _('Erreur')
         CRITICAL = 'CRIT', _('Critique (Crash)')
 
+    class LogStatus(models.TextChoices):
+        NEW = 'NEW', _('Nouveau')
+        TRIAGED = 'TRIAGED', _('Trié')
+        IN_PROGRESS = 'IN_PROGRESS', _('En cours')
+        FIXED = 'FIXED', _('Corrigé')
+        VERIFIED = 'VERIFIED', _('Vérifié')
+        CLOSED = 'CLOSED', _('Fermé')
+
+    class LogPriority(models.TextChoices):
+        LOW = 'LOW', _('Basse')
+        MEDIUM = 'MEDIUM', _('Moyenne')
+        HIGH = 'HIGH', _('Haute')
+        CRITICAL = 'CRITICAL', _('Critique')
+
+    class HttpMethodChoices(models.TextChoices):
+        GET = 'GET', 'GET'
+        POST = 'POST', 'POST'
+        PUT = 'PUT', 'PUT'
+        PATCH = 'PATCH', 'PATCH'
+        DELETE = 'DELETE', 'DELETE'
+        OPTIONS = 'OPTIONS', 'OPTIONS'
+        HEAD = 'HEAD', 'HEAD'
+
     class Meta:
         indexes = [
             models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['status', 'priority']),
         ]
 
     level = models.CharField(max_length=5, choices=LogLevels.choices, default=LogLevels.ERROR)
@@ -259,8 +391,37 @@ class ErrorLog(models.Model):
     is_resolved = models.BooleanField(default=False, help_text=_("Indique si le développeur a corrigé ce bug"))
     created_at = models.DateTimeField(auto_now_add=True)
 
+    status = models.CharField(max_length=20, choices=LogStatus.choices, default=LogStatus.NEW)
+    priority = models.CharField(max_length=20, choices=LogPriority.choices, default=LogPriority.MEDIUM)
+    http_method = models.CharField(max_length=10, choices=HttpMethodChoices.choices, null=True, blank=True)
+    stack_trace = models.TextField(null=True, blank=True)
+    resolution_note = models.TextField(null=True, blank=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_error_logs'
+    )
+
+    def save(self, *args, **kwargs):
+        # Handle automatic resolution timestamp and legacy sync
+        resolved_statuses = [self.LogStatus.FIXED, self.LogStatus.VERIFIED, self.LogStatus.CLOSED]
+
+        if self.status in resolved_statuses:
+            self.is_resolved = True
+            if not self.resolved_at:
+                self.resolved_at = timezone.now()
+        else:
+            self.is_resolved = False
+            # Optional: Do NOT clear resolved_at if status goes backward (preserves audit trail)
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"[{self.level}] {self.endpoint_url} - Résolu: {self.is_resolved}"
+        short_msg = (self.error_message[:40] + '..') if len(self.error_message) > 40 else self.error_message
+        return f"#{self.id} [{self.status}] {self.get_priority_display()} | {short_msg}"
 
 
 class SavingsGoal(models.Model):
@@ -281,3 +442,13 @@ class SavingsGoal(models.Model):
 
     def __str__(self):
         return f"{self.goal_name} - {self.user.email}"
+
+class AiWarningLog(models.Model):
+    """Trace les alertes d'incohérence déclenchées par l'IA avant la sauvegarde de l'intention."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='warning_logs')
+    product_name = models.CharField(max_length=255)
+    product_category = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Alerte IA: {self.user.email} - {self.product_name}"

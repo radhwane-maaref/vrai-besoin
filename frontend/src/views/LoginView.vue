@@ -265,9 +265,15 @@ const handleLogin = async () => {
       email: formData.email,
       password: formData.password,
     });
-    router.push("/dashboard");
+
+    // Check role and redirect accordingly
+    if (authStore.user?.is_staff) {
+      router.push({ name: "admin-dashboard" });
+    } else {
+      router.push("/dashboard");
+    }
   } catch (err) {
-    // L'erreur est gérée et affichée via authStore.error dans le template
+    // Error is handled in the template
   }
 };
 

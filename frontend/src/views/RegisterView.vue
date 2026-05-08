@@ -144,19 +144,17 @@
             class="block text-xs font-medium text-[#374151] ml-1"
             >Profession</label
           >
-          <input
-            type="text"
+          <ProfessionTypeahead
             id="profession"
             v-model="formData.profession"
             placeholder="Ex: Étudiant..."
-            class="block w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400"
           />
         </div>
         <div class="space-y-1">
           <label
             for="budget"
             class="block text-xs font-medium text-[#374151] ml-1"
-            >Budget Mensuel (€)</label
+            >Budget Mensuel</label
           >
           <input
             type="number"
@@ -241,6 +239,7 @@ import { ref, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.js";
 import { useTokenClient } from "vue3-google-signin";
+import ProfessionTypeahead from "@/components/shared/ProfessionTypeahead.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();

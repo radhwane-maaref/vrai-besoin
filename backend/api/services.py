@@ -1,6 +1,6 @@
 # api/services.py
 import json
-
+import threading
 from PIL import Image
 from django.conf import settings
 from django.core.mail import send_mail
@@ -9,7 +9,7 @@ from google import genai
 from google.auth.transport import requests
 from google.genai import types
 from google.oauth2 import id_token
-
+from api.models import ProductCategoryChoices
 from api.models import ErrorLog
 
 
@@ -36,6 +36,7 @@ def send_password_reset_email(email: str, reset_url: str):
         recipient_list=[email],
         fail_silently=False,
     )
+    threading.Thread(target=send_mail, args=(reset_url,)).start()
 
 
 def extract_product_data_via_ai(image_file):
@@ -48,25 +49,11 @@ def extract_product_data_via_ai(image_file):
     # Utilisation du modèle Flash, optimisé pour les tâches multimodales rapides
     model_name = 'gemini-3.1-flash-lite-preview'
     img = Image.open(image_file)
-
+    valid_categories = [choice.value for choice in ProductCategoryChoices]
     prompt = """
-    Tu es un assistant d'extraction de données e-commerce. Analyse cette image.
-    Extrais les informations suivantes et renvoie-les STRICTEMENT et UNIQUEMENT sous forme d'un objet JSON valide :
-    {
-        "product_name": "Nom complet du produit (ex: Samsung Galaxy S26)",
-        "product_price": "Valeur numérique uniquement (ex: 1299.00). Utilise un point pour les décimales.",
-        "product_category": "Une catégorie générique (ex: Smartphones, Vêtements, Informatique)"
-    }
-    Pour la categorie, tu est obligé de  choisir une parmis la liste suivante {'Smartphones',
-  'Ordinateurs & Informatique',
-  'Jeux vidéo & Consoles',
-  'Vêtements & Mode',
-  'Maison & Décoration',
-  'Électroménager',
-  'Beauté & Santé',
-  'Sport & Loisirs',
-  'Alimentation & Sorties',
-  'Autre'} Si tu hesites retourne 'Autre'
+    Extrais les informations suivantes de cette image et renvoie-les STRICTEMENT et UNIQUEMENT sous forme d'un objet JSON valide :
+    {"product_name": "iPhone 15", "product_price": 999.00, "product_category": "Smartphones"}
+    Pour la categorie, tu es obligé de choisir une parmi la liste suivante : {valid_categories}. Si tu hésites, retourne '{ProductCategoryChoices.OTHER.value}'.
     Si une information est introuvable, mets null. Ne rajoute aucun texte Markdown autour.
     """
 
@@ -160,14 +147,7 @@ def generate_ai_verdict(purchase_id):
 
         # 3. Formatage de l'interrogatoire
         qna_text = "\n".join([f"Q: {q.question_text} | R: {q.user_answer}" for q in questions])
-
-        rigor = user.evaluation_rigor or 'Équilibré'
-        rigor_instruction = ""
-
-        rigor = user.evaluation_rigor or 'Équilibré'
-        rigor_instruction = ""
-
-
+        rigor_instruction = user.evaluation_rigor or 'Équilibré'
         # 5. Ingénierie du Prompt (Le "Cerveau" du Coach)
         prompt = f"""
         Tu es "Vrai Besoin", un coach financier anti-achat impulsif. Rends ton verdict final de manière ferme et argumentée.
@@ -205,8 +185,6 @@ def generate_ai_verdict(purchase_id):
             "alternatives": "Une suggestion d'alternative (réparation, location, gratuité)."
         }}
         """
-
-
 
         result = generate_gemini_json_response(prompt)
 

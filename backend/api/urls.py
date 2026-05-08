@@ -10,7 +10,8 @@ from .views import (
 
     UserProfileView, ExtractProductInfoView, PurchaseIntentionCreateView, GenerateQuestionsView, GenerateVerdictView,
     UserFinalDecisionView, DashboardSummaryView, AppFeedbackCreateView, PurchaseHistoryView, AdminFeedbackListView,
-    PurchaseIntentionDetailView, StatsDashboardAPIView
+    PurchaseIntentionDetailView, StatsDashboardAPIView, AdminGlobalStatsView, AdminSystemHealthView,
+    AdminUserManagementView, CategoryListView, ClearHistoryView, AdminCategoryStatsView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -52,4 +53,12 @@ urlpatterns = [
     path('purchase-intentions/<uuid:intention_id>/', PurchaseIntentionDetailView.as_view(),
          name='purchase-intention-detail'),
     path('dashboard/stats/', StatsDashboardAPIView.as_view(), name='dashboard-stats'),
+    path('categories/', CategoryListView.as_view(), name='category-list'),
+    path('admin-api/stats/', AdminGlobalStatsView.as_view(), name='admin-stats'),
+    path('admin-api/errors/', AdminSystemHealthView.as_view(), name='admin-errors'),
+    path('admin-api/errors/<int:log_id>/', AdminSystemHealthView.as_view(), name='admin-error-update'),
+    path('admin-api/users/', AdminUserManagementView.as_view(), name='admin-users'),
+    path('admin-api/users/<int:user_id>/', AdminUserManagementView.as_view(), name='admin-user-update'),
+    path('users/me/clear-history/', ClearHistoryView.as_view(), name='clear-history'),
+    path('admin-api/stats/categories/', AdminCategoryStatsView.as_view(), name='admin-stats-categories'),
 ]
