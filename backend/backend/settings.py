@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'api.apps.ApiConfig',
+    'django.contrib.postgres'
 ]
 
 MIDDLEWARE = [

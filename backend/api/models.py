@@ -12,6 +12,7 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.postgres.fields import ArrayField
 
 
 # les classes de mon application
@@ -43,6 +44,7 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
+
 class BudgetChoices(models.TextChoices):
     PREFER_NOT_TO_SAY = 'Je préfère ne pas répondre', _('Je préfère ne pas répondre')
     UNDER_500 = 'Moins de 500', _('Moins de 500')
@@ -53,6 +55,8 @@ class BudgetChoices(models.TextChoices):
     BETWEEN_5000_8000 = '5 000 - 8 000', _('5 000 - 8 000')
     BETWEEN_8000_15000 = '8 000 - 15 000', _('8 000 - 15 000')
     OVER_15000 = '15 000+', _('15 000+')
+
+
 class SocioProChoices(models.TextChoices):
     STUDENT = 'Étudiant', _('Étudiant')
     EMPLOYEE = 'Employé', _('Employé')
@@ -68,8 +72,11 @@ class SocioProChoices(models.TextChoices):
     OTHER = 'Autre', _('Autre')
     PREFER_NOT_TO_SAY = 'Préfère ne pas répondre', _('Préfère ne pas répondre')
 
+
 def default_socio_pro():
     return [SocioProChoices.PREFER_NOT_TO_SAY.value]
+
+
 # L'utilisateur personalisé
 class CustomUser(AbstractUser):
     monthly_budget = models.CharField(
@@ -81,11 +88,18 @@ class CustomUser(AbstractUser):
     profession = models.CharField(max_length=150, null=True, blank=True)
     socio_professional_categories = models.JSONField(
         default=default_socio_pro,
+        null=True,
         blank=True,
         help_text=_("Catégories socio-professionnelles (max 3)")
     )
     birth_date = models.DateField(null=True, blank=True)
-    financial_goal = models.TextField(null=True, blank=True)
+    financial_goals = ArrayField(
+        models.CharField(max_length=200),
+        size=3,
+        blank=True,
+        null=True,
+        default=list
+    )
     last_ip_address = models.GenericIPAddressField(null=True, blank=True)
     location_data = models.JSONField(default=dict, blank=True)
     cooldown_preference = models.IntegerField(
@@ -96,6 +110,7 @@ class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(_('email address'), unique=True)
     USERNAME_FIELD = 'email'
+    is_onboarded = models.BooleanField(default=False)
     REQUIRED_FIELDS = []
     objects = CustomUserManager()
 
@@ -130,6 +145,7 @@ class CustomUser(AbstractUser):
         blank=True,
         help_text=_("Date de la dernière réinitialisation de l'historique (Soft Delete)")
     )
+
     def delete(self, *args, **kwargs):
         # Désactive le compte au lieu de le supprimer ( Soft delete )
         self.is_active = False
@@ -310,6 +326,7 @@ class ReflectionQuestion(models.Model):
     ai_options = models.JSONField(default=list, blank=True, null=True)
     # La réponse de l'utilisateur
     user_answer = models.CharField(max_length=500, null=True, blank=True)
+
     def save(self, *args, **kwargs):
         # Vérification de la limite de 3 questions par intention d'achat
         # On ne fait le test que lors de la création initiale (quand il n'y a pas encore de primary key 'pk')
@@ -442,6 +459,7 @@ class SavingsGoal(models.Model):
 
     def __str__(self):
         return f"{self.goal_name} - {self.user.email}"
+
 
 class AiWarningLog(models.Model):
     """Trace les alertes d'incohérence déclenchées par l'IA avant la sauvegarde de l'intention."""
