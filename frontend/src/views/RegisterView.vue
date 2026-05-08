@@ -3,29 +3,32 @@
     class="min-h-screen bg-[#F6F5F2] flex flex-col items-center px-6 py-10 font-sans selection:bg-[#5A877E] selection:text-white"
   >
     <div
-      class="w-12 h-12 bg-[#EFF3F3] rounded-xl flex items-center justify-center mb-4 shadow-sm"
+      class="w-16 h-16 bg-[#EFF3F3] rounded-2xl flex items-center justify-center mb-6 shadow-sm"
     >
       <svg
-        class="w-6 h-6 text-[#5A877E]"
-        fill="currentColor"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
       >
         <path
-          d="M17 5.98c-3.14-1.74-7.46-.86-10.2 1.88C4.05 10.6 3.16 14.91 4.9 18.05c.16.29.56.36.83.13 4.1-3.5 7.15-5.5 10.15-5.5 1.48 0 2.8.44 3.96 1.15.25.15.56.02.66-.25.59-1.57.82-3.32.6-5.1-.24-1.95-1.12-3.8-2.6-5.26-.2-.2-.5-.26-.75-.12l-.75-.12z"
+          d="M3.05859 6.04688C-1.01953 10.125 -1.01953 16.7344 3.05859 20.8828C5.23828 15.75 9.17578 11.4609 14.0977 8.92969C9.94922 12.4453 6.99609 17.3672 6.01172 22.9219C9.87891 24.75 14.6602 24.1172 17.8945 20.8828C22.3945 16.3828 23.6602 4.14844 23.9414 0.773438C23.9414 0.351562 23.5898 0 23.168 0C19.793 0.28125 7.55859 1.54688 3.05859 6.04688Z"
+          fill="#5B8C85"
         />
       </svg>
     </div>
 
     <h1
-      class="text-3xl font-serif font-bold text-[#2A3039] mb-2 tracking-tight"
+      class="text-4xl font-serif font-bold text-[#2A3039] mb-3 tracking-tight"
     >
-      Rejoignez-nous
+      Vrai Besoin
     </h1>
     <p
-      class="text-center text-[#6B7280] text-sm mb-6 max-w-[280px] leading-relaxed"
+      class="text-center text-[#6B7280] text-sm mb-8 max-w-[280px] leading-relaxed"
     >
-      Configurez votre profil financier pour que l'IA puisse vous conseiller
-      efficacement.
+      Reprenez le contrôle de vos achats impulsifs et retrouvez votre sérénité
+      financière.
     </p>
 
     <div class="flex w-full max-w-sm bg-[#F3F4F6] p-1.5 rounded-2xl mb-6">
@@ -43,8 +46,8 @@
     </div>
 
     <form @submit.prevent="handleRegister" class="w-full max-w-sm space-y-4">
-      <div class="space-y-1">
-        <label for="email" class="block text-xs font-medium text-[#374151] ml-1"
+      <div class="space-y-1.5">
+        <label for="email" class="block text-sm font-medium text-[#374151] ml-1"
           >Email</label
         >
         <input
@@ -58,10 +61,10 @@
         />
       </div>
 
-      <div class="space-y-1">
+      <div class="space-y-1.5">
         <label
           for="password"
-          class="block text-xs font-medium text-[#374151] ml-1"
+          class="block text-sm font-medium text-[#374151] ml-1"
           >Mot de passe</label
         >
         <div class="relative">
@@ -117,10 +120,10 @@
         </div>
       </div>
 
-      <div class="space-y-1">
+      <div class="space-y-1.5">
         <label
           for="confirm_password"
-          class="block text-xs font-medium text-[#374151] ml-1"
+          class="block text-sm font-medium text-[#374151] ml-1"
           >Confirmer le mot de passe</label
         >
         <input

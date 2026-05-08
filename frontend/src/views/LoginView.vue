@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-screen bg-[#F6F5F2] flex flex-col items-center px-6 py-12 font-sans selection:bg-[#5A877E] selection:text-white"
+    class="min-h-screen bg-[#F6F5F2] flex flex-col items-center px-6 py-10 font-sans selection:bg-[#5A877E] selection:text-white"
   >
     <div
       class="w-16 h-16 bg-[#EFF3F3] rounded-2xl flex items-center justify-center mb-6 shadow-sm"
