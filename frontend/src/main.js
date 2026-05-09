@@ -17,10 +17,7 @@ const pinia = createPinia();
 // the Pinia auth store is already initialized and available.
 
 app.use(GoogleSignInPlugin, {
-  // Temporary changes
-  clientId:
-    import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID ||
-    "123456789-test.apps.googleusercontent.com",
+  clientId: import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID,
 });
 app.use(pinia);
 app.use(router);
