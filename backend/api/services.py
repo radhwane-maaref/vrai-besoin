@@ -11,7 +11,7 @@ from google.genai import types
 from google.oauth2 import id_token
 from api.models import ProductCategoryChoices
 from api.models import ErrorLog
-
+from django.core.cache import cache
 
 def verify_google_token(token: str) -> dict:
     """Verifies the Google JWT and extracts user info."""
@@ -37,6 +37,18 @@ def send_password_reset_email(email: str, reset_url: str):
         fail_silently=False,
     )
     threading.Thread(target=send_mail, args=(reset_url,)).start()
+
+
+def send_otp_email(email: str, otp_code: str):
+    """Envoie l'e-mail de vérification contenant le code OTP."""
+    subject = "Vrai Besoin - Votre code de vérification"
+    message = f"Bonjour,\n\nVotre code de vérification à 6 chiffres est : {otp_code}\n\nCe code est valide pendant 10 minutes.\n\nL'équipe Vrai Besoin"
+
+    # Utilisation d'un thread pour envoyer l'e-mail de manière asynchrone
+    threading.Thread(
+        target=send_mail,
+        args=(subject, message, settings.DEFAULT_FROM_EMAIL, [email], False)
+    ).start()
 
 
 def extract_product_data_via_ai(image_file):
@@ -65,7 +77,7 @@ def generate_reflection_questions(purchase_id):
     Génère 3 questions de réflexion personnalisées via Gemini.
     Exploite les dimensions d'Utilité et de Psychologie pour cibler les biais cognitifs.
     """
-    from api.models import PurchaseIntention, ReflectionQuestion, ErrorLog
+    from api.models import PurchaseIntention, ReflectionQuestion
     try:
         # 1. Récupération des données (Produit + Utilisateur)
         intention = PurchaseIntention.objects.select_related('user').get(id=purchase_id)
@@ -124,7 +136,7 @@ def generate_ai_verdict(purchase_id):
     Service métier qui rassemble le contexte, interroge le LLM et structure la réponse en JSON.
     Applique la décision finale basée sur l'historique et les biais psychologiques détectés.
     """
-    from api.models import PurchaseIntention, ErrorLog
+    from api.models import PurchaseIntention
     try:
         # 1. Chargement des données avec optimisation SQL
         intention = PurchaseIntention.objects.select_related('user').prefetch_related('questions').get(id=purchase_id)

@@ -42,12 +42,22 @@ export const useAuthStore = defineStore("auth", () => {
       const response = await api.post("/auth/register/", userData);
       await handleAuthSuccess(response);
     } catch (err) {
-      // ... error handling remains unchanged ...
+      // Correctly extract Django DRF validation errors
+      const data = err.response?.data;
+
+      error.value =
+        data?.error ||
+        data?.email?.[0] ||
+        data?.password?.[0] ||
+        data?.confirm_password?.[0] ||
+        data?.non_field_errors?.[0] ||
+        "L'inscription a échoué. Veuillez vérifier vos informations.";
+
+      throw err; // Crucial: throws the error so the component knows it failed
     } finally {
       loading.value = false;
     }
   };
-
   const googleLogin = async (token) => {
     loading.value = true;
     error.value = null;

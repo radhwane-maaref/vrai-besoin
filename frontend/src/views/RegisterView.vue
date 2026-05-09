@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-screen bg-[#F6F5F2] flex flex-col items-center px-6 py-10 font-sans selection:bg-[#5A877E] selection:text-white"
+    class="min-h-screen bg-[#F6F5F2] flex flex-col items-center px-6 py-10 font-sans selection:bg-[#5A877E] selection:text-white relative"
   >
     <div
       class="w-16 h-16 bg-[#EFF3F3] rounded-2xl flex items-center justify-center mb-6 shadow-sm"
@@ -47,40 +47,74 @@
 
     <form @submit.prevent="handleRegister" class="w-full max-w-sm space-y-4">
       <div class="space-y-1.5">
-        <label for="email" class="block text-sm font-medium text-[#374151] ml-1"
+        <label for="email" class="block text-sm font-medium text-[#374151]"
           >Email</label
         >
-        <input
-          type="email"
-          id="email"
-          v-model="formData.email"
-          placeholder="exemple@email.com"
-          autocomplete="username"
-          class="block w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400"
-          required
-        />
+        <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+          >
+            <svg
+              class="h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+          <input
+            type="email"
+            id="email"
+            v-model="formData.email"
+            placeholder="exemple@email.com"
+            autocomplete="username"
+            class="block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400"
+            required
+          />
+        </div>
       </div>
 
       <div class="space-y-1.5">
-        <label
-          for="password"
-          class="block text-sm font-medium text-[#374151] ml-1"
+        <label for="password" class="block text-sm font-medium text-[#374151]"
           >Mot de passe</label
         >
         <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+          >
+            <svg
+              class="h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+          </div>
           <input
             :type="showPassword ? 'text' : 'password'"
             id="password"
             v-model="formData.password"
             placeholder="••••••••"
-            autocomplete="new-password"
-            class="block w-full pl-4 pr-12 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400 tracking-widest"
+            autocomplete="current-password"
+            class="block w-full pl-11 pr-12 py-3.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400 tracking-widest"
             required
           />
           <button
             type="button"
             @click="togglePasswordVisibility"
-            class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+            class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
           >
             <svg
               v-if="!showPassword"
@@ -123,64 +157,52 @@
       <div class="space-y-1.5">
         <label
           for="confirm_password"
-          class="block text-sm font-medium text-[#374151] ml-1"
+          class="block text-sm font-medium text-[#374151]"
           >Confirmer le mot de passe</label
         >
-        <input
-          :type="showPassword ? 'text' : 'password'"
-          id="confirm_password"
-          v-model="formData.confirm_password"
-          placeholder="••••••••"
-          autocomplete="new-password"
-          class="block w-full pl-4 pr-12 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400 tracking-widest"
-          required
-        />
-        <p v-if="passwordMismatch" class="text-xs text-red-500 mt-1 ml-1">
-          Les mots de passe ne correspondent pas
-        </p>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="space-y-1">
-          <label
-            for="profession"
-            class="block text-xs font-medium text-[#374151] ml-1"
-            >Profession</label
+        <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
           >
-          <ProfessionTypeahead
-            id="profession"
-            v-model="formData.profession"
-            placeholder="Ex: Étudiant..."
-          />
-        </div>
-        <div class="space-y-1">
-          <label
-            for="budget"
-            class="block text-xs font-medium text-[#374151] ml-1"
-            >Budget Mensuel</label
-          >
+            <svg
+              class="h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+          </div>
           <input
-            type="number"
-            id="budget"
-            v-model="formData.monthly_budget"
-            placeholder="Ex: 1500"
-            min="0"
-            step="0.01"
-            class="block w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400"
+            :type="showPassword ? 'text' : 'password'"
+            id="confirm_password"
+            v-model="formData.confirm_password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            class="block w-full pl-11 pr-12 py-3.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400 tracking-widest"
+            required
           />
         </div>
       </div>
 
       <button
         type="submit"
-        :disabled="authStore.loading || passwordMismatch"
+        :disabled="isRequestingOtp || isFormInvalid"
         class="w-full mt-2 bg-[#5B8C85] text-white rounded-2xl py-3.5 font-semibold text-sm hover:bg-[#4A726A] transition-colors active:scale-[0.98] shadow-md shadow-[#5A877E]/20 disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        <span v-if="authStore.loading">Création en cours...</span>
+        <span v-if="isRequestingOtp">Envoi du code...</span>
         <span v-else>S'inscrire</span>
       </button>
 
-      <p v-if="authStore.error" class="text-xs text-red-500 text-center mt-2">
+      <p
+        v-if="authStore.error && !showOtpModal"
+        class="text-xs text-red-500 text-center mt-2"
+      >
         {{ authStore.error }}
       </p>
     </form>
@@ -194,7 +216,6 @@
       <div class="flex-grow border-t border-gray-200"></div>
     </div>
 
-    <!-- Zone du Bouton Google 100% Personnalisé -->
     <div class="w-full max-w-sm flex flex-col items-center">
       <button
         type="button"
@@ -225,14 +246,90 @@
         </svg>
         Google
       </button>
-
-      <!-- Affichage de l'erreur en Français -->
       <p
         v-if="googleError"
         class="text-xs text-red-500 text-center mt-3 font-medium"
       >
         {{ googleError }}
       </p>
+    </div>
+
+    <div
+      v-if="showOtpModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+    >
+      <div class="bg-white rounded-3xl p-8 max-w-sm w-full relative shadow-2xl">
+        <button
+          @click="showOtpModal = false"
+          class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+
+        <h2 class="text-2xl font-bold text-[#2A3039] mb-2 text-center">
+          Vérifiez votre e-mail
+        </h2>
+        <p class="text-center text-[#6B7280] text-sm mb-6">
+          Nous avons envoyé un code à 6 chiffres à <br />
+          <span class="font-medium text-[#374151]">{{ formData.email }}</span>
+        </p>
+
+        <div class="flex justify-between gap-2 mb-6">
+          <input
+            v-for="(digit, index) in otpCode"
+            :key="index"
+            ref="otpInputs"
+            type="text"
+            inputmode="numeric"
+            maxlength="1"
+            v-model="otpCode[index]"
+            @input="handleOtpInput(index, $event)"
+            @keydown="handleOtpKeydown(index, $event)"
+            @paste="handleOtpPaste"
+            :disabled="isVerifying"
+            :class="[
+              'w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold rounded-xl outline-none transition-all disabled:opacity-50 border',
+              otpError
+                ? 'bg-red-50 border-red-500 text-red-600 focus:ring-2 focus:ring-red-500/20'
+                : 'bg-[#F3F4F6] text-[#2A3039] border-transparent focus:bg-white focus:border-[#5A877E] focus:ring-2 focus:ring-[#5A877E]/20',
+            ]"
+          />
+        </div>
+
+        <p
+          v-if="otpError"
+          class="text-red-500 text-sm text-center mb-4 font-medium"
+        >
+          {{ otpError }}
+        </p>
+
+        <div class="text-center mt-2">
+          <p class="text-sm text-[#6B7280] mb-2">
+            Vous n'avez pas reçu le code ?
+          </p>
+          <button
+            @click="resendOtp"
+            :disabled="resendCountdown > 0 || isRequestingOtp"
+            class="text-[#5B8C85] font-semibold text-sm hover:text-[#4A726A] disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            Renvoyer le code
+            <span v-if="resendCountdown > 0">({{ resendCountdown }}s)</span>
+            <span v-else-if="isRequestingOtp">...</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -242,7 +339,7 @@ import { ref, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.js";
 import { useTokenClient } from "vue3-google-signin";
-import ProfessionTypeahead from "@/components/shared/ProfessionTypeahead.vue";
+import api from "@/services/api.js";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -250,18 +347,27 @@ const authStore = useAuthStore();
 const showPassword = ref(false);
 const googleError = ref("");
 
+// État OTP
+const showOtpModal = ref(false);
+const otpCode = ref(["", "", "", "", "", ""]);
+const otpInputs = ref([]);
+const otpError = ref("");
+const resendCountdown = ref(0);
+const isRequestingOtp = ref(false);
+const isVerifying = ref(false);
+let timerInterval = null;
+
 const formData = reactive({
   email: "",
   password: "",
   confirm_password: "",
-  profession: "",
-  monthly_budget: null,
 });
 
-const passwordMismatch = computed(() => {
+const isFormInvalid = computed(() => {
   return (
-    formData.password &&
-    formData.confirm_password &&
+    !formData.email ||
+    !formData.password ||
+    !formData.confirm_password ||
     formData.password !== formData.confirm_password
   );
 });
@@ -270,25 +376,173 @@ const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
 
+// 1. Demande de l'OTP
 const handleRegister = async () => {
-  if (passwordMismatch.value) return;
-
+  if (isFormInvalid.value) return;
   try {
-    const { confirm_password, ...payload } = formData;
+    isRequestingOtp.value = true;
+    authStore.error = "";
 
-    // Casting de sécurité : Conversion propre en Float pour correspondre au DecimalField de Django
-    if (payload.monthly_budget) {
-      payload.monthly_budget = parseFloat(payload.monthly_budget);
-    }
+    await api.post("/auth/request-otp/", { email: formData.email });
 
-    await authStore.register(payload);
-    router.push("/dashboard");
+    showOtpModal.value = true;
+    otpCode.value = ["", "", "", "", "", ""];
+    otpError.value = "";
+    startResendTimer();
+
+    setTimeout(() => {
+      if (otpInputs.value[0]) otpInputs.value[0].focus();
+    }, 100);
   } catch (err) {
-    // Les erreurs sont capturées et affichées via le template
+    authStore.error =
+      err.response?.data?.error ||
+      "Erreur lors de la demande du code de vérification.";
+  } finally {
+    isRequestingOtp.value = false;
   }
 };
 
-// Implémentation via useTokenClient pour l'inscription avec Google
+// Fonction de vérification centralisée (Remplace le watcher capricieux)
+const checkOtpAndSubmit = async () => {
+  const code = otpCode.value.join("");
+  if (code.length === 6 && !otpCode.value.includes("")) {
+    await verifyOtpAndRegister(code);
+  }
+};
+
+// 2. Vérification et Inscription
+const verifyOtpAndRegister = async (code) => {
+  if (isVerifying.value) return; // Sécurité anti-double exécution
+  try {
+    isVerifying.value = true;
+    otpError.value = "";
+
+    // Appel à l'API d'inscription finale
+    await authStore.register({ ...formData, otp: code });
+
+    // --- SUCCÈS ---
+    showOtpModal.value = false;
+
+    // Redirection sécurisée
+    router.push("/onboarding").catch(() => {
+      router.push("/dashboard");
+    });
+  } catch (err) {
+    // --- ERREUR ---
+    console.error("Erreur de validation:", err);
+
+    // Capture robuste du message d'erreur renvoyé par Django (gestion des dictionnaires d'erreurs)
+    const data = err.response?.data;
+    let backendError = data?.error;
+
+    if (!backendError && data) {
+      // S'il s'agit d'un dictionnaire d'erreurs DRF, on récupère le premier message
+      const firstKey = Object.keys(data)[0];
+      if (firstKey) {
+        backendError = Array.isArray(data[firstKey])
+          ? data[firstKey][0]
+          : data[firstKey];
+      }
+    }
+
+    if (backendError) {
+      otpError.value = backendError;
+    } else {
+      otpError.value =
+        "Le code est incorrect ou une erreur serveur est survenue.";
+    }
+
+    // Vide la DERNIÈRE case pour forcer l'utilisateur à la retaper et re-déclencher la validation
+    setTimeout(() => {
+      if (otpInputs.value[5]) {
+        otpCode.value[5] = "";
+        otpInputs.value[5].focus();
+      }
+    }, 50);
+  } finally {
+    isVerifying.value = false;
+  }
+};
+
+// --- Interactions avec les Inputs ---
+const handleOtpInput = (index, event) => {
+  const value = event.target.value;
+
+  // On n'efface l'erreur que SI on a tapé un vrai chiffre
+  if (value && /^\d*$/.test(value) && otpError.value) {
+    otpError.value = "";
+  }
+
+  // Interdire les lettres
+  if (!/^\d*$/.test(value)) {
+    otpCode.value[index] = "";
+    return;
+  }
+
+  // Passage auto au champ suivant
+  if (value && index < 5) {
+    otpInputs.value[index + 1].focus();
+  }
+
+  // Vérification de la complétude
+  checkOtpAndSubmit();
+};
+
+const handleOtpKeydown = (index, event) => {
+  if (event.key === "Backspace" && !otpCode.value[index] && index > 0) {
+    otpInputs.value[index - 1].focus();
+    otpError.value = ""; // Efface l'erreur si on recule
+  }
+};
+
+const handleOtpPaste = (event) => {
+  event.preventDefault();
+  const pastedData = event.clipboardData
+    .getData("text")
+    .replace(/\D/g, "")
+    .slice(0, 6);
+  if (pastedData) {
+    otpError.value = ""; // Efface l'erreur au collage
+    for (let i = 0; i < pastedData.length; i++) {
+      otpCode.value[i] = pastedData[i];
+    }
+    const nextIndex = pastedData.length < 6 ? pastedData.length : 5;
+    otpInputs.value[nextIndex].focus();
+
+    checkOtpAndSubmit();
+  }
+};
+
+// --- Timer et Renvoyer ---
+const startResendTimer = () => {
+  resendCountdown.value = 60;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    resendCountdown.value--;
+    if (resendCountdown.value <= 0) clearInterval(timerInterval);
+  }, 1000);
+};
+
+const resendOtp = async () => {
+  if (resendCountdown.value > 0) return;
+  try {
+    isRequestingOtp.value = true;
+    otpError.value = "";
+    await api.post("/auth/request-otp/", { email: formData.email });
+    startResendTimer();
+    otpCode.value = ["", "", "", "", "", ""];
+    setTimeout(() => {
+      if (otpInputs.value[0]) otpInputs.value[0].focus();
+    }, 100);
+  } catch (err) {
+    otpError.value =
+      err.response?.data?.error || "Impossible de renvoyer le code.";
+  } finally {
+    isRequestingOtp.value = false;
+  }
+};
+
+// --- Authentification Google ---
 const { login: registerWithGoogle } = useTokenClient({
   onSuccess: async (response) => {
     googleError.value = "";
@@ -296,16 +550,11 @@ const { login: registerWithGoogle } = useTokenClient({
       await authStore.googleLogin(response.access_token);
       router.push("/dashboard");
     } catch (err) {
-      console.error("Erreur SSO Google :", err);
-
-      // On tente de lire l'erreur exacte du backend (Django DRF / dj-rest-auth)
       const backendError =
         err.response?.data?.error || err.response?.data?.non_field_errors?.[0];
-
       if (backendError) {
         googleError.value = backendError;
       } else if (err.response?.status === 400 || err.response?.status === 401) {
-        // Message par défaut si le backend renvoie 400/401 sans texte clair
         googleError.value =
           "Un compte utilise déjà cet email. Veuillez vous connecter avec votre mot de passe.";
       } else {

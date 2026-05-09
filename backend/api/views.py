@@ -6,7 +6,6 @@ from rest_framework import status, generics
 from rest_framework.exceptions import NotFound
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
@@ -21,22 +20,21 @@ from .serializers import (
     UserRegistrationSerializer,
     ProductImageExtractionSerializer, PurchaseIntentionSerializer, ReflectionQuestionSerializer,
     FinalDecisionUpdateSerializer, AppFeedbackSerializer, AdminFeedbackSerializer, ErrorLogSerializer,
-    AdminUserListSerializer
+    AdminUserListSerializer, OnboardingSerializer
 )
-from .models import CustomUser, ErrorLog, PurchaseIntention, ReflectionQuestion, SavingsGoal, AppFeedback, \
-    ProductCategoryChoices
+from .models import CustomUser, ErrorLog, ReflectionQuestion, SavingsGoal, AppFeedback, \
+    ProductCategoryChoices, BudgetChoices, SocioProChoices
 from .services import verify_google_token, send_password_reset_email, generate_ai_verdict, extract_product_data_via_ai, \
     generate_reflection_questions, generate_gemini_json_response, log_app_error
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import timedelta
 from django.db import transaction
-import json
-from google import genai
-from google.genai import types
 from django.utils.translation import gettext_lazy as _
 from rest_framework.throttling import AnonRateThrottle
+from django.core.cache import cache
+import random
+from .services import send_otp_email
 
 
 class PasswordResetAnonThrottle(AnonRateThrottle):
@@ -56,15 +54,33 @@ class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        email = request.data.get('email')
+        otp_submitted = request.data.get('otp')
+
+        # Bloquer si pas d'OTP
+        if not otp_submitted:
+            return Response({'error': 'Le code OTP est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Vérifier si l'OTP correspond à celui en cache
+        cached_otp = cache.get(f"otp_{email}")
+        if not cached_otp or str(cached_otp) != str(otp_submitted):
+            return Response({'error': 'Code OTP invalide ou expiré.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Continuer avec l'inscription normale
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save(auth_provider='email')
+
+            # Supprimer l'OTP du cache une fois le compte créé
+            cache.delete(f"otp_{email}")
+
             tokens = get_user_tokens(user)
             return Response({
                 'message': _('Inscription réussie.'),
                 'tokens': tokens,
                 'user': {'email': user.email, 'budget': user.monthly_budget}
             }, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -267,6 +283,53 @@ class UserProfileView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class RequestOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "L'adresse e-mail est requise."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Vérifier si l'utilisateur existe déjà
+        if CustomUser.objects.filter(email=email).exists():
+            return Response({"error": "Un compte avec cet e-mail existe déjà."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Générer un code à 6 chiffres
+        otp_code = str(random.randint(100000, 999999))
+
+        # Stocker dans le cache pour 10 minutes (600 secondes)
+        cache.set(f"otp_{email}", otp_code, timeout=600)
+
+        # Envoyer l'e-mail
+        send_otp_email(email, otp_code)
+
+        return Response({"message": "Code OTP envoyé avec succès."}, status=status.HTTP_200_OK)
+class OnboardingChoicesView(APIView):
+    permission_classes = [AllowAny]  # Or IsAuthenticated depending on your flow
+
+    def get(self, request):
+        return Response({
+            "socio_pro": [{"value": c.value, "label": c.label} for c in SocioProChoices],
+            "budget": [{"value": c.value, "label": c.label} for c in BudgetChoices]
+        }, status=status.HTTP_200_OK)
+
+
+class SubmitOnboardingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if user.is_onboarded:
+            return Response({"error": "Utilisateur déjà onboardé."}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = OnboardingSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            # Save the valid data and flag the user as onboarded
+            serializer.save(is_onboarded=True)
+            return Response({"message": "Onboarding terminé avec succès."}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ClearHistoryView(APIView):
     """
@@ -777,7 +840,6 @@ class CategoryListView(APIView):
 # --------------------------Partie spécifique pour l'Admin-------------------------
 
 from django.db.models import Sum, Count, Q
-from django.db.models.functions import TruncDate
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser

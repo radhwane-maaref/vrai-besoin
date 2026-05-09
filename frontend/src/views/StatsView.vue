@@ -1,14 +1,13 @@
 <template>
   <div
-    class="min-h-screen bg-[#F8F6F2] px-5 py-8 pb-28 font-sans selection:bg-[#5A877E]/20"
+    class="min-h-screen bg-[#F8F6F2] font-['DM_Sans',_sans-serif] pb-12 px-4"
   >
-    <header class="mb-8">
-      <h1 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">
+    <header class="w-full pt-4 sm:pt-12 pb-3 sm:pb-6">
+      <h1
+        class="text-center text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight"
+      >
         Statistiques
       </h1>
-      <p class="text-sm text-gray-500 mt-1">
-        Analysez l'impact de votre coach IA sur vos finances.
-      </p>
     </header>
 
     <section

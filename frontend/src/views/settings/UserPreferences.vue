@@ -459,50 +459,9 @@ watch(periodIndex, async (newIndex) => {
 
 const isDropdownOpen = ref(false);
 const currencyStore = useCurrencyStore();
-const currencies = [
-  { code: "TND", name: "Dinar tunisien", countryCode: "tn" },
-  { code: "EUR", name: "Euro", countryCode: "eu" },
-  { code: "USD", name: "Dollar américain", countryCode: "us" },
-  { code: "GBP", name: "Livre sterling", countryCode: "gb" },
-  { code: "CAD", name: "Dollar canadien", countryCode: "ca" },
-  { code: "JPY", name: "Yen japonais", countryCode: "jp" },
-  { code: "AUD", name: "Dollar australien", countryCode: "au" },
-  { code: "CHF", name: "Franc suisse", countryCode: "ch" },
-  { code: "CNY", name: "Yuan chinois", countryCode: "cn" },
-  { code: "AED", name: "Dirham des EAU", countryCode: "ae" },
-  { code: "SAR", name: "Riyal saoudien", countryCode: "sa" },
-  { code: "MAD", name: "Dirham marocain", countryCode: "ma" },
-  { code: "DZD", name: "Dinar algérien", countryCode: "dz" },
-  { code: "ZAR", name: "Rand sud-africain", countryCode: "za" },
-  { code: "BRL", name: "Réal brésilien", countryCode: "br" },
-  { code: "INR", name: "Roupie indienne", countryCode: "in" },
-  { code: "EGP", name: "Livre égyptienne", countryCode: "eg" },
-  { code: "QAR", name: "Riyal qatari", countryCode: "qa" },
-  { code: "KWD", name: "Dinar koweïtien", countryCode: "kw" },
-  { code: "BHD", name: "Dinar bahreïni", countryCode: "bh" },
-  { code: "OMR", name: "Rial omanais", countryCode: "om" },
-  { code: "JOD", name: "Dinar jordanien", countryCode: "jo" },
-  { code: "LBP", name: "Livre libanaise", countryCode: "lb" },
-  { code: "KRW", name: "Won sud-coréen", countryCode: "kr" },
-  { code: "SGD", name: "Dollar de Singapour", countryCode: "sg" },
-  { code: "HKD", name: "Dollar de Hong Kong", countryCode: "hk" },
-  { code: "NZD", name: "Dollar néo-zélandais", countryCode: "nz" },
-  { code: "MYR", name: "Ringgit malaisien", countryCode: "my" },
-  { code: "IDR", name: "Roupie indonésienne", countryCode: "id" },
-  { code: "THB", name: "Baht thaïlandais", countryCode: "th" },
-  { code: "MXN", name: "Peso mexicain", countryCode: "mx" },
-  { code: "ARS", name: "Peso argentin", countryCode: "ar" },
-  { code: "COP", name: "Peso colombien", countryCode: "co" },
-  { code: "CLP", name: "Peso chilien", countryCode: "cl" },
-  { code: "SEK", name: "Couronne suédoise", countryCode: "se" },
-  { code: "NOK", name: "Couronne norvégienne", countryCode: "no" },
-  { code: "DKK", name: "Couronne danoise", countryCode: "dk" },
-  { code: "PLN", name: "Złoty polonais", countryCode: "pl" },
-  { code: "CZK", name: "Couronne tchèque", countryCode: "cz" },
-  { code: "HUF", name: "Forint hongrois", countryCode: "hu" },
-  { code: "TRY", name: "Livre turque", countryCode: "tr" },
-  { code: "RUB", name: "Rouble russe", countryCode: "ru" },
-];
+
+// FIX : On importe la liste directement depuis le store pour éviter la duplication
+const currencies = currencyStore.availableCurrencies;
 const selectedCurrency = computed(() => currencyStore.currentCurrency);
 
 const selectCurrency = (currency) => {
