@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#FAFAFA] flex flex-col font-sans">
+  <div class="min-h-screen bg-[#F8F6F2] font-['DM_Sans',_sans-serif] pb-12">
     <div class="relative z-10 border-b border-gray-100 bg-white/50">
       <header class="px-6 py-5 flex justify-center items-center relative">
         <h1 class="text-xl font-bold text-gray-900 text-center">

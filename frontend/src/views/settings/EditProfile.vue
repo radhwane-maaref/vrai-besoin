@@ -192,43 +192,11 @@
         @validate="validateField('socio_professional_categories')"
       />
 
-      <div class="space-y-1">
-        <label class="block text-lg font-medium text-gray-900"
-          >Objectif financier</label
-        >
-
-        <CustomSelect
-          v-model="formData.financial_goal"
-          :options="goalOptions"
-          @change="validateField('financial_goal')"
-          sizeClass="py-3.5 h-auto text-gray-600 bg-white border-gray-200"
-          roundedClass="rounded-2xl"
-        />
-      </div>
-
-      <div v-if="formData.financial_goal === 'Autre'" class="space-y-1 mt-2">
-        <label class="block text-sm font-medium text-gray-700 ml-1"
-          >Précisez votre objectif</label
-        >
-        <input
-          type="text"
-          v-model="formData.custom_financial_goal"
-          @input="validateField('custom_financial_goal')"
-          placeholder="Ex: Économiser pour un voyage au Japon..."
-          class="w-full px-4 py-3.5 rounded-2xl outline-none transition-all shadow-sm"
-          :class="
-            errors.custom_financial_goal
-              ? 'border-2 border-red-400 focus:ring-2 focus:ring-red-400 bg-red-50 text-red-700'
-              : 'border border-gray-200 focus:ring-2 focus:ring-[#5A877E] bg-white'
-          "
-        />
-        <p
-          v-if="errors.custom_financial_goal"
-          class="text-xs text-red-500 font-medium ml-2"
-        >
-          {{ errors.custom_financial_goal }}
-        </p>
-      </div>
+      <FinancialGoalSelect
+        v-model="formData.financial_goals"
+        :error="errors.financial_goals"
+        @validate="validateField('financial_goals')"
+      />
 
       <div class="space-y-1 pb-6">
         <label class="block text-lg font-medium text-gray-900"
@@ -287,21 +255,12 @@ import api from "@/services/api";
 import { useCurrencyStore } from "@/stores/currency";
 import CustomSelect from "@/components/shared/CustomSelect.vue";
 import SocioProSelect from "@/components/shared/SocioProSelect.vue";
+import FinancialGoalSelect from "@/components/shared/FinancialGoalSelect.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
 const isSaving = ref(false);
 const currencyStore = useCurrencyStore();
-
-const goalOptions = [
-  "Réduire les dépenses impulsives",
-  "Épargner pour un projet",
-  "Rembourser des dettes",
-  "Investir pour l'avenir",
-  "Créer un fonds d'urgence",
-  "Acheter un bien immobilier",
-  "Autre",
-];
 
 const baseBudgetRanges = [
   "Je préfère ne pas répondre",
@@ -333,8 +292,7 @@ const formData = reactive({
   new_password: "",
   confirm_password: "",
   birth_date: "",
-  financial_goal: "Réduire les dépenses impulsives",
-  custom_financial_goal: "",
+  financial_goals: ["Je préfère ne pas répondre"],
   monthly_budget: null,
   socio_professional_categories: ["Préfère ne pas répondre"],
 });
@@ -346,7 +304,7 @@ const errors = reactive({
   confirm_password: null,
   birth_date: null,
   monthly_budget: null,
-  custom_financial_goal: null,
+  financial_goals: null,
   socio_professional_categories: null,
 });
 
@@ -363,13 +321,15 @@ onMounted(() => {
       ];
     }
 
-    const savedGoal =
-      authStore.user.financial_goal || "Réduire les dépenses impulsives";
-    if (goalOptions.includes(savedGoal)) {
-      formData.financial_goal = savedGoal;
-    } else {
-      formData.financial_goal = "Autre";
-      formData.custom_financial_goal = savedGoal;
+    let userGoals =
+      authStore.user.financial_goals?.length > 0
+        ? [...authStore.user.financial_goals]
+        : authStore.user.financial_goal
+          ? [authStore.user.financial_goal]
+          : [];
+
+    if (userGoals.length > 0) {
+      formData.financial_goals = [...new Set(userGoals)];
     }
   }
 });
@@ -447,26 +407,12 @@ const validateField = (field) => {
       errors.birth_date = null;
     }
   }
-  if (field === "custom_financial_goal" || field === "financial_goal") {
-    if (formData.financial_goal === "Autre") {
-      const val = formData.custom_financial_goal.trim();
-      const wordCount = val.split(/\s+/).length;
-      const hasLetters = /[a-zA-Z]/.test(val);
 
-      if (val.length < 5) {
-        errors.custom_financial_goal =
-          "L'objectif doit contenir au moins 5 caractères.";
-      } else if (!hasLetters) {
-        errors.custom_financial_goal =
-          "L'objectif ne peut pas contenir uniquement des chiffres.";
-      } else if (wordCount < 2) {
-        errors.custom_financial_goal =
-          "Veuillez détailler votre objectif (au moins deux mots).";
-      } else {
-        errors.custom_financial_goal = null;
-      }
+  if (field === "financial_goals") {
+    if (formData.financial_goals.length === 0) {
+      errors.financial_goals = "Veuillez sélectionner au moins un objectif.";
     } else {
-      errors.custom_financial_goal = null;
+      errors.financial_goals = null;
     }
   }
 
@@ -504,11 +450,10 @@ const handleSubmit = async () => {
   validateField("full_name");
   validateField("birth_date");
   validateField("monthly_budget");
-  validateField("custom_financial_goal");
+  validateField("financial_goals");
   validateField("socio_professional_categories");
 
   if (formData.new_password || formData.confirm_password) {
-    // Validation rapide de l'ancien mot de passe
     if (!formData.old_password) {
       errors.old_password = "Votre ancien mot de passe est requis.";
     } else {
@@ -526,23 +471,20 @@ const handleSubmit = async () => {
 
   try {
     const nameParts = formData.full_name.trim().split(" ");
+
     const payload = {
       first_name: nameParts[0] || "",
       last_name: nameParts.slice(1).join(" ") || "",
       birth_date: formData.birth_date || null,
-      financial_goal:
-        formData.financial_goal === "Autre"
-          ? formData.custom_financial_goal.trim()
-          : formData.financial_goal,
+      financial_goals: [...formData.financial_goals], // Assure un tableau pur
       monthly_budget: formData.monthly_budget || null,
       socio_professional_categories: [
         ...formData.socio_professional_categories,
-      ],
+      ], // Assure un tableau pur
     };
 
-    // Ajout de l'ancien mot de passe dans le payload
     if (formData.new_password) {
-      payload.old_password = formData.old_password; // <-- Ajout
+      payload.old_password = formData.old_password;
       payload.new_password = formData.new_password;
     }
 
@@ -550,7 +492,7 @@ const handleSubmit = async () => {
     await authStore.fetchUserProfile();
 
     showSuccessMessage.value = true;
-    formData.old_password = ""; // <-- Réinitialisation
+    formData.old_password = "";
     formData.new_password = "";
     formData.confirm_password = "";
 
@@ -559,9 +501,21 @@ const handleSubmit = async () => {
     }, 3000);
   } catch (error) {
     console.error("Erreur de mise à jour: ", error);
-    // Optionnel: Gérer l'erreur 400 spécifiquement pour l'afficher à l'utilisateur
-    if (error.response?.status === 400 && error.response?.data?.old_password) {
-      errors.old_password = "L'ancien mot de passe est incorrect.";
+
+    // FIX : Extraction de toutes les erreurs back-end potentielles pour affichage
+    if (error.response?.status === 400 && error.response?.data) {
+      const data = error.response.data;
+      if (data.old_password) errors.old_password = data.old_password;
+      if (data.first_name) errors.full_name = data.first_name[0];
+      if (data.last_name) errors.full_name = data.last_name[0];
+      if (data.birth_date) errors.birth_date = data.birth_date[0];
+      if (data.monthly_budget) errors.monthly_budget = data.monthly_budget[0];
+      if (data.financial_goals)
+        errors.financial_goals = data.financial_goals[0];
+      if (data.socio_professional_categories)
+        errors.socio_professional_categories =
+          data.socio_professional_categories[0];
+      if (data.new_password) errors.new_password = data.new_password[0];
     }
   } finally {
     isSaving.value = false;

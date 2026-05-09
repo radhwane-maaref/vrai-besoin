@@ -47,40 +47,74 @@
 
     <form @submit.prevent="handleRegister" class="w-full max-w-sm space-y-4">
       <div class="space-y-1.5">
-        <label for="email" class="block text-sm font-medium text-[#374151] ml-1"
+        <label for="email" class="block text-sm font-medium text-[#374151]"
           >Email</label
         >
-        <input
-          type="email"
-          id="email"
-          v-model="formData.email"
-          placeholder="exemple@email.com"
-          autocomplete="username"
-          class="block w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400"
-          required
-        />
+        <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+          >
+            <svg
+              class="h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+          <input
+            type="email"
+            id="email"
+            v-model="formData.email"
+            placeholder="exemple@email.com"
+            autocomplete="username"
+            class="block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400"
+            required
+          />
+        </div>
       </div>
 
       <div class="space-y-1.5">
-        <label
-          for="password"
-          class="block text-sm font-medium text-[#374151] ml-1"
+        <label for="password" class="block text-sm font-medium text-[#374151]"
           >Mot de passe</label
         >
         <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+          >
+            <svg
+              class="h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+          </div>
           <input
             :type="showPassword ? 'text' : 'password'"
             id="password"
             v-model="formData.password"
             placeholder="••••••••"
-            autocomplete="new-password"
-            class="block w-full pl-4 pr-12 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400 tracking-widest"
+            autocomplete="current-password"
+            class="block w-full pl-11 pr-12 py-3.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400 tracking-widest"
             required
           />
           <button
             type="button"
             @click="togglePasswordVisibility"
-            class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+            class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
           >
             <svg
               v-if="!showPassword"
@@ -123,57 +157,82 @@
       <div class="space-y-1.5">
         <label
           for="confirm_password"
-          class="block text-sm font-medium text-[#374151] ml-1"
+          class="block text-sm font-medium text-[#374151]"
           >Confirmer le mot de passe</label
         >
-        <input
-          :type="showPassword ? 'text' : 'password'"
-          id="confirm_password"
-          v-model="formData.confirm_password"
-          placeholder="••••••••"
-          autocomplete="new-password"
-          class="block w-full pl-4 pr-12 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400 tracking-widest"
-          required
-        />
-        <p v-if="passwordMismatch" class="text-xs text-red-500 mt-1 ml-1">
-          Les mots de passe ne correspondent pas
-        </p>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="space-y-1">
-          <label
-            for="profession"
-            class="block text-xs font-medium text-[#374151] ml-1"
-            >Profession</label
+        <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
           >
-          <ProfessionTypeahead
-            id="profession"
-            v-model="formData.profession"
-            placeholder="Ex: Étudiant..."
-          />
-        </div>
-        <div class="space-y-1">
-          <label
-            for="budget"
-            class="block text-xs font-medium text-[#374151] ml-1"
-            >Budget Mensuel</label
-          >
+            <svg
+              class="h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+          </div>
           <input
-            type="number"
-            id="budget"
-            v-model="formData.monthly_budget"
-            placeholder="Ex: 1500"
-            min="0"
-            step="0.01"
-            class="block w-full px-4 py-3 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400"
+            :type="showPassword ? 'text' : 'password'"
+            id="confirm_password"
+            v-model="formData.confirm_password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            class="block w-full pl-11 pr-12 py-3.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#5A877E] focus:border-transparent outline-none transition-all placeholder-gray-400 tracking-widest"
+            required
           />
+          <button
+            type="button"
+            @click="togglePasswordVisibility"
+            class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            <svg
+              v-if="!showPassword"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+              />
+            </svg>
+            <svg
+              v-else
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 
       <button
         type="submit"
-        :disabled="authStore.loading || passwordMismatch"
+        :disabled="authStore.loading || isFormInvalid"
         class="w-full mt-2 bg-[#5B8C85] text-white rounded-2xl py-3.5 font-semibold text-sm hover:bg-[#4A726A] transition-colors active:scale-[0.98] shadow-md shadow-[#5A877E]/20 disabled:opacity-70 disabled:cursor-not-allowed"
       >
         <span v-if="authStore.loading">Création en cours...</span>
@@ -242,7 +301,6 @@ import { ref, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.js";
 import { useTokenClient } from "vue3-google-signin";
-import ProfessionTypeahead from "@/components/shared/ProfessionTypeahead.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -254,14 +312,13 @@ const formData = reactive({
   email: "",
   password: "",
   confirm_password: "",
-  profession: "",
-  monthly_budget: null,
 });
 
-const passwordMismatch = computed(() => {
+const isFormInvalid = computed(() => {
   return (
-    formData.password &&
-    formData.confirm_password &&
+    !formData.email ||
+    !formData.password ||
+    !formData.confirm_password ||
     formData.password !== formData.confirm_password
   );
 });
@@ -271,21 +328,11 @@ const togglePasswordVisibility = () => {
 };
 
 const handleRegister = async () => {
-  if (passwordMismatch.value) return;
-
+  if (isFormInvalid.value) return;
   try {
-    const { confirm_password, ...payload } = formData;
-
-    // Casting de sécurité : Conversion propre en Float pour correspondre au DecimalField de Django
-    if (payload.monthly_budget) {
-      payload.monthly_budget = parseFloat(payload.monthly_budget);
-    }
-
-    await authStore.register(payload);
+    await authStore.register(formData);
     router.push("/dashboard");
-  } catch (err) {
-    // Les erreurs sont capturées et affichées via le template
-  }
+  } catch (err) {}
 };
 
 // Implémentation via useTokenClient pour l'inscription avec Google

@@ -1,8 +1,14 @@
 <template>
-  <div class="min-h-screen bg-[#F8F6F2] font-['DM_Sans',_sans-serif] pb-12">
+  <div
+    class="min-h-screen bg-[#F8F6F2] font-['DM_Sans',_sans-serif] pb-12 px-4"
+  >
     <!-- Header -->
-    <header class="pt-8 pb-6 text-center">
-      <h1 class="text-[32px] font-bold text-[#000000]">Suivi</h1>
+    <header class="w-full pt-4 sm:pt-12 pb-3 sm:pb-6">
+      <h1
+        class="text-center text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight"
+      >
+        Mes suivis
+      </h1>
     </header>
 
     <div class="max-w-3xl mx-auto px-4 sm:px-6 flex flex-col">

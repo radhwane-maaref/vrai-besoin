@@ -1,10 +1,12 @@
 <template>
   <!-- Main Wrapper -->
-  <div class="flex-grow bg-[#F8F6F2] flex flex-col font-sans pb-10">
+  <div
+    class="min-h-screen bg-[#F8F6F2] font-['DM_Sans',_sans-serif] pb-12 px-4"
+  >
     <!-- Header -->
-    <header class="w-full pt-8 sm:pt-12 pb-4 sm:pb-6">
+    <header class="w-full pt-4 sm:pt-12 pb-3 sm:pb-6">
       <h1
-        class="text-center text-[1.35rem] sm:text-3xl font-bold text-gray-900 tracking-tight"
+        class="text-center text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight"
       >
         Paramètres
       </h1>

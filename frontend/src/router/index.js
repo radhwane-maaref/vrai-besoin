@@ -8,7 +8,7 @@ import TrackView from "@/views/TrackView.vue";
 
 const LoginView = () => import("@/views/LoginView.vue");
 const DashboardView = () => import("@/views/DashboardView.vue");
-
+const OnboardingStepper = () => import("@/views/OnboardingStepper.vue");
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -25,6 +25,12 @@ const router = createRouter({
         }
         return true;
       },
+    },
+    {
+      path: "/onboarding",
+      name: "onboarding",
+      component: OnboardingStepper,
+      meta: { requiresAuth: true, hideBottomNav: true },
     },
     {
       path: "/register",
@@ -141,7 +147,6 @@ router.beforeEach(async (to, from) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin);
 
-  // FIX: Await the user profile load if authenticated but missing data (e.g. page refresh)
   if (authStore.isAuthenticated && !authStore.user) {
     try {
       await authStore.fetchUserProfile();
@@ -151,12 +156,25 @@ router.beforeEach(async (to, from) => {
     }
   }
 
-  // Redirect to login if the route requires authentication but the user is not logged in
+  // Redirect to log in if the route requires authentication but the user is not logged in
   if (requiresAuth && !authStore.isAuthenticated) {
     return { name: "login" };
   }
+  if (authStore.isAuthenticated && authStore.user) {
+    // Exclude admin accounts from onboarding loop to prevent lockouts
+    if (!authStore.user.is_staff) {
+      // If not onboarded and trying to access anything other than onboarding
+      if (!authStore.user.is_onboarded && to.name !== "onboarding") {
+        return { name: "onboarding" };
+      }
 
-  // NEW: Restrict Admin users from accessing client pages
+      // If already onboarded and trying to access the onboarding page manually
+      if (authStore.user.is_onboarded && to.name === "onboarding") {
+        return { name: "dashboard" };
+      }
+    }
+  }
+  // Restrict Admin users from accessing client pages
   if (authStore.isAuthenticated && authStore.user?.is_staff) {
     // Define the specific non-admin routes the admin is allowed to access
     const allowedAdminRoutes = [

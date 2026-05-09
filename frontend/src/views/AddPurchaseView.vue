@@ -1,34 +1,17 @@
 <template>
-  <div
-    class="min-h-screen bg-[#F8F6F2] flex flex-col font-sans selection:bg-[#5A877E] selection:text-white"
-  >
-    <div v-if="step === 1" class="flex flex-col flex-grow relative pb-20">
-      <div class="px-6 py-6 flex items-center gap-3">
-        <div class="w-10 h-10 flex items-center justify-center">
-          <svg
-            class="w-8 h-8 text-gray-900"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
-        </div>
-        <span class="font-bold text-gray-900 text-lg tracking-tight"
-          >Vrai Besoin</span
+  <div class="min-h-screen bg-[#F8F6F2] font-['DM_Sans',_sans-serif] pb-12">
+    <div v-if="step === 1" class="flex flex-col flex-grow relative pb-1">
+      <div class="px-6 py-6 flex items-center gap-3 justify-center m-2">
+        <h1
+          class="text-center text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight"
         >
+          Analyse du Besoin
+        </h1>
       </div>
 
-      <div
-        class="flex-grow flex flex-col items-center justify-center px-6 mt-[-40px]"
-      >
+      <div class="flex flex-col items-center justify-center px-6">
         <div
-          class="w-32 h-32 bg-[#E1EBE8] rounded-full flex items-center justify-center mb-6"
+          class="w-32 h-32 bg-[#E1EBE8] rounded-full flex items-center justify-center mt-3"
         >
           <svg
             class="w-16 h-16 text-[#5A877E]"
@@ -45,9 +28,6 @@
           </svg>
         </div>
 
-        <h1 class="text-2xl font-bold text-[#1F2937] mb-2 text-center">
-          Analysez votre envie
-        </h1>
         <p
           class="text-[#6B7280] text-center mb-10 text-sm px-4 leading-relaxed"
         >
@@ -88,7 +68,7 @@
         </div>
       </div>
 
-      <div class="px-6 flex justify-center mb-8">
+      <div class="px-6 flex justify-center mb-5 mt-5">
         <button
           @click="goToManualEntry"
           class="flex items-center gap-2 text-[#6B7280] hover:text-[#374151] transition-colors font-medium text-sm"
@@ -131,7 +111,9 @@
             />
           </svg>
         </button>
-        <h1 class="w-full text-center text-2xl font-semibold text-[#1F2937]">
+        <h1
+          class="w-full text-center text-2xl font-bold text-[#1F2937] sm:text-3xl"
+        >
           Analyse du Besoin
         </h1>
       </div>
