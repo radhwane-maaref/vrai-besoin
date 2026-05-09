@@ -42,6 +42,8 @@ class OnboardingSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Veuillez définir entre 1 et 3 objectifs uniques.")
 
         return normalized
+
+
 class CustomUserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     socio_professional_categories = serializers.ListField(
@@ -49,6 +51,13 @@ class CustomUserSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True
     )
+    # FIX : Déclaration explicite du champ Array
+    financial_goals = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        allow_empty=True
+    )
+
     class Meta:
         model = CustomUser
 
@@ -56,7 +65,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
                   'birth_date', 'monthly_budget', 'profession', 'financial_goals',
                   'location_data', 'auth_provider', 'is_staff', 'cooldown_preference',
                   'evaluation_rigor', 'preferred_currency', 'wants_cooldown_reminders',
-                  'socio_professional_categories'
+                  'socio_professional_categories', 'is_onboarded'
                   ]
         extra_kwargs = {
             'email': {'read_only': True},
@@ -65,32 +74,47 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'profession': {'read_only': True}
         }
 
-    def validate_socio_professional_categories(self, value):
-        """
-        Validateur ultra-robuste : Gère les cas où Vue.js envoie la donnée
-        sous forme de liste native ou de chaîne de caractères JSON stringifiée.
-        """
-        # Si Django reçoit une chaîne de caractères au lieu d'une liste
+    # FIX : Validation robuste et formatage de sauvegarde
+    def validate_financial_goals(self, value):
         if isinstance(value, str):
             try:
-                # Tente de parser '["Étudiant"]' (JSON)
                 value = json.loads(value)
             except Exception:
-                # Fallback de sécurité si le format est "Étudiant,Employé"
                 value = [v.strip() for v in value.split(',')]
 
-        # Vérification finale du type
         if not isinstance(value, list):
             raise serializers.ValidationError(_("Le format doit être une liste de chaînes de caractères."))
 
-        # Filtrer les potentiels éléments vides
         value = [v for v in value if v]
 
-        # Validation métier : min 1, max 3
+        if len(value) < 1 or len(value) > 3:
+            raise serializers.ValidationError(_("Veuillez définir entre 1 et 3 objectifs financiers."))
+
+        normalized = []
+        seen = set()
+        for goal in value:
+            clean_goal = str(goal).strip()
+            if clean_goal and clean_goal.lower() not in seen:
+                seen.add(clean_goal.lower())
+                normalized.append(clean_goal)
+
+        return normalized
+
+    def validate_socio_professional_categories(self, value):
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except Exception:
+                value = [v.strip() for v in value.split(',')]
+
+        if not isinstance(value, list):
+            raise serializers.ValidationError(_("Le format doit être une liste de chaînes de caractères."))
+
+        value = [v for v in value if v]
+
         if len(value) < 1 or len(value) > 3:
             raise serializers.ValidationError(_("Vous devez sélectionner entre 1 et 3 catégories."))
 
-        # Validation métier : Exclusivité de "Préfère ne pas répondre"
         if "Préfère ne pas répondre" in value and len(value) > 1:
             raise serializers.ValidationError(
                 _("'Préfère ne pas répondre' ne peut pas être combiné avec d'autres choix."))
