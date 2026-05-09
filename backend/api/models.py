@@ -46,7 +46,7 @@ class CustomUserManager(BaseUserManager):
 
 
 class BudgetChoices(models.TextChoices):
-    PREFER_NOT_TO_SAY = 'Je préfère ne pas répondre', _('Je préfère ne pas répondre')
+
     UNDER_500 = 'Moins de 500', _('Moins de 500')
     BETWEEN_500_1000 = '500 - 1 000', _('500 - 1 000')
     BETWEEN_1000_2000 = '1 000 - 2 000', _('1 000 - 2 000')
@@ -55,22 +55,25 @@ class BudgetChoices(models.TextChoices):
     BETWEEN_5000_8000 = '5 000 - 8 000', _('5 000 - 8 000')
     BETWEEN_8000_15000 = '8 000 - 15 000', _('8 000 - 15 000')
     OVER_15000 = '15 000+', _('15 000+')
-
+    PREFER_NOT_TO_SAY = 'Je préfère ne pas répondre', _('Je préfère ne pas répondre')
 
 class SocioProChoices(models.TextChoices):
     STUDENT = 'Étudiant', _('Étudiant')
     EMPLOYEE = 'Employé', _('Employé')
     CIVIL_SERVANT = 'Fonctionnaire', _('Fonctionnaire')
-    FREELANCE = 'Indépendant / Freelance', _('Indépendant / Freelance')
-    ENTREPRENEUR = 'Entrepreneur / Chef d\'entreprise', _('Entrepreneur / Chef d\'entreprise')
     MERCHANT = 'Commerçant / Artisan', _('Commerçant / Artisan')
     LIBERAL = 'Profession libérale', _('Profession libérale')
+    FREELANCE = 'Indépendant / Freelance', _('Indépendant / Freelance')
+    RETIRED = 'Retraité', _('Retraité')
+
+
+
     WORKER = 'Ouvrier / Technicien', _('Ouvrier / Technicien')
     UNEMPLOYED = 'Sans emploi', _('Sans emploi')
-    RETIRED = 'Retraité', _('Retraité')
     HOMEMAKER = 'Au foyer', _('Au foyer')
+    ENTREPRENEUR = 'Entrepreneur / Chef d\'entreprise', _('Entrepreneur / Chef d\'entreprise')
     OTHER = 'Autre', _('Autre')
-    PREFER_NOT_TO_SAY = 'Préfère ne pas répondre', _('Préfère ne pas répondre')
+    PREFER_NOT_TO_SAY = 'Préfère ne pas répondre', _('Je préfère ne pas répondre')
 
 
 def default_socio_pro():

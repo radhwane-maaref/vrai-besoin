@@ -10,6 +10,38 @@ import magic
 import json
 
 
+class OnboardingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['socio_professional_categories', 'monthly_budget', 'financial_goals']
+
+    def validate_socio_professional_categories(self, value):
+        if not value or not (1 <= len(value) <= 3):
+            raise serializers.ValidationError("Veuillez sélectionner entre 1 et 3 catégories.")
+        return value
+
+    def validate_monthly_budget(self, value):
+        if not value:
+            raise serializers.ValidationError("La marge budgétaire est requise.")
+        return value
+
+    def validate_financial_goals(self, value):
+        if not value or not (1 <= len(value) <= 3):
+            raise serializers.ValidationError("Veuillez définir entre 1 et 3 objectifs financiers.")
+
+        # Normalize and remove duplicates (case-insensitive)
+        normalized = []
+        seen = set()
+        for goal in value:
+            clean_goal = str(goal).strip()
+            if clean_goal and clean_goal.lower() not in seen:
+                seen.add(clean_goal.lower())
+                normalized.append(clean_goal)
+
+        if not (1 <= len(normalized) <= 3):
+            raise serializers.ValidationError("Veuillez définir entre 1 et 3 objectifs uniques.")
+
+        return normalized
 class CustomUserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     socio_professional_categories = serializers.ListField(
@@ -19,9 +51,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = CustomUser
-        # 1. AJOUT CRUCIAL : 'socio_professional_categories' DOIT être dans cette liste
+
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'full_name',
-                  'birth_date', 'monthly_budget', 'profession', 'financial_goal',
+                  'birth_date', 'monthly_budget', 'profession', 'financial_goals',
                   'location_data', 'auth_provider', 'is_staff', 'cooldown_preference',
                   'evaluation_rigor', 'preferred_currency', 'wants_cooldown_reminders',
                   'socio_professional_categories'
@@ -91,7 +123,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'password', 'confirm_password', 'monthly_budget', 'profession']
+        fields = ['email', 'password', 'confirm_password']
         extra_kwargs = {
             'email': {
                 'required': True,
@@ -111,9 +143,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "confirm_password": _("Les mots de passe ne correspondent pas.")
             })
-
-        # Optional: You can also enforce Django's built-in validate_password(password) here
-        # to mirror what you did in SetNewPasswordSerializer
 
         return attrs
 

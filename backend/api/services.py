@@ -65,7 +65,7 @@ def generate_reflection_questions(purchase_id):
     Génère 3 questions de réflexion personnalisées via Gemini.
     Exploite les dimensions d'Utilité et de Psychologie pour cibler les biais cognitifs.
     """
-    from api.models import PurchaseIntention, ReflectionQuestion, ErrorLog
+    from api.models import PurchaseIntention, ReflectionQuestion
     try:
         # 1. Récupération des données (Produit + Utilisateur)
         intention = PurchaseIntention.objects.select_related('user').get(id=purchase_id)
@@ -124,7 +124,7 @@ def generate_ai_verdict(purchase_id):
     Service métier qui rassemble le contexte, interroge le LLM et structure la réponse en JSON.
     Applique la décision finale basée sur l'historique et les biais psychologiques détectés.
     """
-    from api.models import PurchaseIntention, ErrorLog
+    from api.models import PurchaseIntention
     try:
         # 1. Chargement des données avec optimisation SQL
         intention = PurchaseIntention.objects.select_related('user').prefetch_related('questions').get(id=purchase_id)
