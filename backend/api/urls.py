@@ -11,7 +11,7 @@ from .views import (
     UserFinalDecisionView, DashboardSummaryView, AppFeedbackCreateView, PurchaseHistoryView, AdminFeedbackListView,
     PurchaseIntentionDetailView, StatsDashboardAPIView, AdminGlobalStatsView, AdminSystemHealthView,
     AdminUserManagementView, CategoryListView, ClearHistoryView, AdminCategoryStatsView, OnboardingChoicesView,
-    SubmitOnboardingView
+    SubmitOnboardingView, RequestOTPView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -19,6 +19,7 @@ urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('onboarding/choices/', OnboardingChoicesView.as_view(), name='onboarding-choices'),
     path('onboarding/submit/', SubmitOnboardingView.as_view(), name='onboarding-submit'),
+    path('auth/request-otp/', RequestOTPView.as_view(), name='request-otp'),
     path('auth/login/', LoginView.as_view(), name='login'),
     path('auth/google/', GoogleLoginView.as_view(), name='google-login'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

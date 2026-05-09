@@ -11,7 +11,7 @@ from google.genai import types
 from google.oauth2 import id_token
 from api.models import ProductCategoryChoices
 from api.models import ErrorLog
-
+from django.core.cache import cache
 
 def verify_google_token(token: str) -> dict:
     """Verifies the Google JWT and extracts user info."""
@@ -37,6 +37,18 @@ def send_password_reset_email(email: str, reset_url: str):
         fail_silently=False,
     )
     threading.Thread(target=send_mail, args=(reset_url,)).start()
+
+
+def send_otp_email(email: str, otp_code: str):
+    """Envoie l'e-mail de vérification contenant le code OTP."""
+    subject = "Vrai Besoin - Votre code de vérification"
+    message = f"Bonjour,\n\nVotre code de vérification à 6 chiffres est : {otp_code}\n\nCe code est valide pendant 10 minutes.\n\nL'équipe Vrai Besoin"
+
+    # Utilisation d'un thread pour envoyer l'e-mail de manière asynchrone
+    threading.Thread(
+        target=send_mail,
+        args=(subject, message, settings.DEFAULT_FROM_EMAIL, [email], False)
+    ).start()
 
 
 def extract_product_data_via_ai(image_file):

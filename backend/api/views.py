@@ -32,6 +32,9 @@ from datetime import timedelta
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework.throttling import AnonRateThrottle
+from django.core.cache import cache
+import random
+from .services import send_otp_email
 
 
 class PasswordResetAnonThrottle(AnonRateThrottle):
@@ -51,15 +54,33 @@ class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        email = request.data.get('email')
+        otp_submitted = request.data.get('otp')
+
+        # Bloquer si pas d'OTP
+        if not otp_submitted:
+            return Response({'error': 'Le code OTP est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Vérifier si l'OTP correspond à celui en cache
+        cached_otp = cache.get(f"otp_{email}")
+        if not cached_otp or str(cached_otp) != str(otp_submitted):
+            return Response({'error': 'Code OTP invalide ou expiré.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Continuer avec l'inscription normale
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save(auth_provider='email')
+
+            # Supprimer l'OTP du cache une fois le compte créé
+            cache.delete(f"otp_{email}")
+
             tokens = get_user_tokens(user)
             return Response({
                 'message': _('Inscription réussie.'),
                 'tokens': tokens,
                 'user': {'email': user.email, 'budget': user.monthly_budget}
             }, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -262,7 +283,28 @@ class UserProfileView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class RequestOTPView(APIView):
+    permission_classes = [AllowAny]
 
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "L'adresse e-mail est requise."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Vérifier si l'utilisateur existe déjà
+        if CustomUser.objects.filter(email=email).exists():
+            return Response({"error": "Un compte avec cet e-mail existe déjà."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Générer un code à 6 chiffres
+        otp_code = str(random.randint(100000, 999999))
+
+        # Stocker dans le cache pour 10 minutes (600 secondes)
+        cache.set(f"otp_{email}", otp_code, timeout=600)
+
+        # Envoyer l'e-mail
+        send_otp_email(email, otp_code)
+
+        return Response({"message": "Code OTP envoyé avec succès."}, status=status.HTTP_200_OK)
 class OnboardingChoicesView(APIView):
     permission_classes = [AllowAny]  # Or IsAuthenticated depending on your flow
 

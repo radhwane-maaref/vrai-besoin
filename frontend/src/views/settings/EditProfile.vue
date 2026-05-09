@@ -54,7 +54,7 @@
           type="text"
           v-model="formData.full_name"
           @input="validateField('full_name')"
-          placeholder="Julien Alvarez"
+          placeholder="Taper votre nom..."
           class="w-full px-4 py-3.5 rounded-2xl outline-none transition-all shadow-sm"
           :class="
             errors.full_name
